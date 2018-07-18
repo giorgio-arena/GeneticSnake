@@ -9,6 +9,7 @@ mainframe = pygame.display.set_mode((width, height), pygame.DOUBLEBUF|pygame.HWS
 pygame.display.set_caption('Genetic Snake')
 pygame.font.init()
 myfont = pygame.font.SysFont('Comic Sans MS', 30)  # Comic sans, yay
+clock = pygame.time.Clock()
 
 score = 0
 
@@ -17,11 +18,11 @@ score = 0
 
 running = True
 while running:
-    #refresh screen
+    # Refresh screen
     mainframe.fill((255, 255, 255))
 
     # Print score
-    scoresurfice = myfont.render(str(score), False, (0, 200, 0))
+    scoresurfice = myfont.render(str(clock.get_fps()), False, (0, 200, 0))
     mainframe.blit(scoresurfice, (width - 80, 20))
 
     # Draw walls
@@ -44,6 +45,7 @@ while running:
             score += 1
 
     pygame.display.flip()
+    #clock.tick(60)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:

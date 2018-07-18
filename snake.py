@@ -1,12 +1,14 @@
 import pygame
 import math
-
+import numpy as np
 
 class Snake:
     def __init__(self):
         # Positional attributes
         self.x = [320]  # List of x coordinates for each of the snake's body parts
         self.y = [240]  # List of y coordinates for each of the snake's body parts
+
+        self.tmp = 0
 
         # Movement attributes
         self.directions     = [0]   # Directions for each of the snake's body parts: 0 right, 90 down, 180 left, 270 up
@@ -108,3 +110,56 @@ class Snake:
 
     def is_dead(self):
         return self.dead
+
+    def get_visual_inputs(self, food_x, food_y):
+        """
+        :return A list of 24 integers. Every three elements represent what the snake can see from a different angle:
+                - The first of the triple will contain the distance between the snake's head and the walls
+                - The second of the triple will contain the distance between the snake's head and the food (if present)
+                - The third of the triple will contain the distance between the snake's head and its body (if present)
+
+                The snake can see from 8 different angles (relative to the head's current direction) and these will be
+                arranged in thhe following order: [0, 45, 90, 135, 180, 225, 270, 315]
+        """
+        ret = []
+
+        direction = self.directions[0]  # Head's direction
+        for i in range(8):
+            food_found = False
+            body_found = False
+
+            wall_dist = -1
+            food_dist = -1
+            body_dist = -1
+
+            (x, y) = (self.x[0], self.y[0])
+            while 0 < x < 640 and 0 < y < 480:  # TODO: replace raw values
+                # If this angle points at food, calculate distance and don't look for food anymore
+                if not food_found:
+                    if food_x - self.body_size < x < food_x + self.body_size and \
+                       food_y - self.body_size < y < food_y + self.body_size:
+                        food_dist = int(math.sqrt(pow(self.x[0] - x, 2) + pow(self.y[0] - y, 2)))
+                        food_found = True
+
+                # If this angle points at a body part, calculate distance and don't look for body parts anymore
+                if not body_found:
+                    for j in range(1, len(self.directions)):
+                        if self.x[j] - self.body_size < x < self.x[j] + self.body_size and \
+                           self.y[j] - self.body_size < y < self.y[j] + self.body_size:
+                            body_dist = int(math.sqrt(pow(self.x[0] - x, 2) + pow(self.y[0] - y, 2)))
+                            body_found = True
+
+                x += np.sign(np.round(math.cos(math.radians(direction))))
+                y += np.sign(np.round(math.sin(math.radians(direction))))
+
+            wall_dist = int(math.sqrt(pow(self.x[0] - x, 2) + pow(self.y[0] - y, 2)))
+
+            ret.append(wall_dist)
+            ret.append(food_dist)
+            ret.append(body_dist)
+
+            direction += 45
+
+        print(ret[0])
+
+        return ret

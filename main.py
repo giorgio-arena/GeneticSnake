@@ -1,11 +1,12 @@
 import pygame
 import random
+import time
 from snake import Snake
 
 snake = Snake()
 
 (width, height) = (640, 480)
-mainframe = pygame.display.set_mode((width, height), pygame.DOUBLEBUF|pygame.HWSURFACE)
+mainframe = pygame.display.set_mode((width, height), pygame.DOUBLEBUF | pygame.HWSURFACE)
 pygame.display.set_caption('Genetic Snake')
 pygame.font.init()
 myfont = pygame.font.SysFont('Comic Sans MS', 30)  # Comic sans, yay
@@ -16,13 +17,16 @@ score = 0
 (food_pos_x, food_pos_y) = (random.randint(30, width - 30), random.randint(30, height - 30))   # Generate
 (food_pos_x, food_pos_y) = ((int(food_pos_x / 20) + 1) * 20, (int(food_pos_y / 20) + 1) * 20)  # Round to multiple
 
+fps = 60
+now = time.time()
+
 running = True
 while running:
     # Refresh screen
     mainframe.fill((255, 255, 255))
 
     # Print score
-    scoresurfice = myfont.render(str(clock.get_fps()), False, (0, 200, 0))
+    scoresurfice = myfont.render(str(score), False, (0, 200, 0))
     mainframe.blit(scoresurfice, (width - 80, 20))
 
     # Draw walls
@@ -45,7 +49,6 @@ while running:
             score += 1
 
     pygame.display.flip()
-    #clock.tick(60)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -59,3 +62,9 @@ while running:
                 snake.set_direction("right")
             elif event.key == pygame.K_DOWN:
                 snake.set_direction("down")
+
+    # Lock to 60fps
+    while (time.time() - now) < (1 / fps):
+        pass
+
+    now = time.time()

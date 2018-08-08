@@ -1,13 +1,13 @@
 import pygame
 import random
 import time
-from snake import Snake
+from population import Population
 
-snake = Snake()
+population = Population()
 
 (width, height) = (640, 480)
 mainframe = pygame.display.set_mode((width, height), pygame.DOUBLEBUF | pygame.HWSURFACE)
-pygame.display.set_caption('Genetic Snake')
+pygame.display.set_caption('snAIk')
 pygame.font.init()
 myfont = pygame.font.SysFont('Comic Sans MS', 30)  # Comic sans, yay
 clock = pygame.time.Clock()
@@ -35,33 +35,26 @@ while running:
     pygame.draw.line(mainframe, (0, 0, 0), (width - 5, height), (width - 5, 0), 10)
     pygame.draw.line(mainframe, (0, 0, 0), (width, height - 5), (0, height - 5), 10)
 
-    # Draw the snake
-    snake.draw(mainframe)
+    # Draw the snakes
+    population.draw(mainframe)
 
     # Draw food
     pygame.draw.circle(mainframe, (255, 0, 0), (food_pos_x, food_pos_y), 5, 0)
 
-    # Move the snake
-    if not snake.is_dead():
-        if snake.move(width, height, (food_pos_x, food_pos_y)):
-            (food_pos_x, food_pos_y) = (random.randint(30, width - 30), random.randint(30, height - 30))
-            (food_pos_x, food_pos_y) = ((int(food_pos_x / 20) + 1) * 20, (int(food_pos_y / 20) + 1) * 20)
-            score += 1
+    # Move the snakes
+    if not population.are_all_dead():
+        population.move((width, height), (food_pos_x, food_pos_y))
+        '''
+        (food_pos_x, food_pos_y) = (random.randint(30, width - 30), random.randint(30, height - 30))
+        (food_pos_x, food_pos_y) = ((int(food_pos_x / 20) + 1) * 20, (int(food_pos_y / 20) + 1) * 20)
+        score += 1
+        '''
 
     pygame.display.flip()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
-                snake.set_direction("left")
-            elif event.key == pygame.K_UP:
-                snake.set_direction("up")
-            elif event.key == pygame.K_RIGHT:
-                snake.set_direction("right")
-            elif event.key == pygame.K_DOWN:
-                snake.set_direction("down")
 
     # Lock to 60fps
     while (time.time() - now) < (1 / fps):

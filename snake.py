@@ -29,6 +29,9 @@ class Snake:
         # Frames before moving to a next direction
         self.timer = self.body_size
 
+        self.starving_lv     = 0
+        self.max_starving_lv = 400  # Movements before dying of starvation
+
         # Flags
         self.dead = False
 
@@ -45,15 +48,15 @@ class Snake:
 
             pygame.draw.circle(frame, color, (self.visual_x[i], self.visual_y[i]), self.body_radius, 0)
 
-    def move(self, width, height, food_pos):
+    def move(self, screen_dims, food_pos):
         """
-        :param width:    Rightmost boundary (i.e. screen's width) in pixels
-        :param height:   Lowermost boundary (i.e. screen's height) in pixels
-        :param food_pos: X and Y coordinates of where the food is
+        :param screen_dims: Rightmost and lowermost boundaries (i.e. screen's width and height) in pixels
+        :param food_pos:    X and Y coordinates of where the food is
 
         :return: True if the food has been eaten, False otherwise
         """
 
+        (width, height) = screen_dims
         # If hit a boundary, die
         if self.x[0] <= self.body_radius or self.x[0] >= width - self.body_radius or \
            self.y[0] <= self.body_radius or self.y[0] >= height - self.body_radius:
@@ -78,6 +81,7 @@ class Snake:
             self.visual_y.append(self.y[-1])
 
             self.velocity += self.velocity * self.speedup_rate
+            self.starving_lv = 0
 
             return True
 
@@ -91,6 +95,12 @@ class Snake:
                 self.y[i] += self.body_radius * int(np.sin(np.radians(self.directions[i])))
                 self.visual_x[i] = self.x[i]
                 self.visual_y[i] = self.y[i]
+
+            self.starving_lv += 1
+            if self.starving_lv > self.max_starving_lv:
+                self.die()
+
+            self.set_direction(self.brain.think(self.get_visual_inputs(food_pos)))
 
         else:   # For smooth movement
             for i in range(len(self.directions)):
@@ -110,16 +120,20 @@ class Snake:
 
     def set_direction(self, direction):
         """
-        :param direction: ["up" | "down" | "left" | "right"]
+        :param direction: 0 -> up
+                          1 -> down
+                          2 -> left
+                          3 -> right
         """
+        assert 0 <= direction <= 3
 
-        if direction == "up" and self.directions[0] != 90 and self.directions[0] != 270:
+        if direction == 0 and self.directions[0] != 90 and self.directions[0] != 270:
             self.next_direction = 270
-        elif direction == "down" and self.directions[0] != 90 and self.directions[0] != 270:
+        elif direction == 1 and self.directions[0] != 90 and self.directions[0] != 270:
             self.next_direction = 90
-        elif direction == "left" and self.directions[0] != 0 and self.directions[0] != 180:
+        elif direction == 2 and self.directions[0] != 0 and self.directions[0] != 180:
             self.next_direction = 180
-        elif direction == "right" and self.directions[0] != 0 and self.directions[0] != 180:
+        elif direction == 3 and self.directions[0] != 0 and self.directions[0] != 180:
             self.next_direction = 0
 
     def die(self):
@@ -128,17 +142,18 @@ class Snake:
     def is_dead(self):
         return self.dead
 
-    def get_visual_inputs(self, food_x, food_y):
+    def get_visual_inputs(self, food_pos):
         """
-        :return A list of 24 integers. Every three elements represent what the snake can see from a different angle:
-                - The first of the triple will contain the distance between the snake's head and the wall
-                - The second of the triple will contain the distance between the snake's head and the food (if present)
-                - The third of the triple will contain the distance between the snake's head and its body (if present)
+        :return A list of 24 integers. Every three elements represent what the snake can see from different directions:
+                - The first of the triple contains the distance between its head and the wall
+                - The second of the triple contains the distance between its head and the food (if in that direction)
+                - The third of the triple contains the distance between its head and its body (if in that direction)
 
                 The snake can see from 8 different angles (relative to the head's current direction) and these will be
                 arranged in the following order: [0, 45, 90, 135, 180, 225, 270, 315]
         """
-        ret = []
+        ret              = []
+        (food_x, food_y) = food_pos
 
         direction = self.directions[0]  # Head's direction
         for i in range(8):
@@ -147,6 +162,9 @@ class Snake:
 
             food_dist = -1
             body_dist = -1
+
+            x_incr = self.body_size * np.sign(np.round(np.cos(np.radians(direction))))
+            y_incr = self.body_size * np.sign(np.round(np.sin(np.radians(direction))))
 
             (x, y) = (self.x[0], self.y[0])
             while 0 < x < 640 and 0 < y < 480:  # TODO: replace raw values
@@ -165,17 +183,15 @@ class Snake:
                             body_dist = int(np.sqrt(pow(self.x[0] - x, 2) + pow(self.y[0] - y, 2)))
                             body_found = True
 
-                x += np.sign(np.round(np.cos(np.radians(direction))))
-                y += np.sign(np.round(np.sin(np.radians(direction))))
+                x += x_incr
+                y += y_incr
 
             wall_dist = int(np.sqrt(pow(self.x[0] - x, 2) + pow(self.y[0] - y, 2)))
 
-            ret.append(wall_dist)
-            ret.append(food_dist)
-            ret.append(body_dist)
+            ret.append(-1 / 320 * wall_dist + 1)
+            ret.append(-1 / 320 * food_dist + 1)
+            ret.append(-1 / 320 * body_dist + 1)
 
             direction += 45
-
-        #print(ret[0])
 
         return ret

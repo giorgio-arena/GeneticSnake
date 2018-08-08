@@ -19,3 +19,28 @@ class Brain:
         self.hidden1_hidden2_mat = np.random.uniform(low=-1.0, high=1.0, size=(self.hidden1_nodes, self.hidden2_nodes))
         self.hidden2_output_mat  = np.random.uniform(low=-1.0, high=1.0, size=(self.hidden2_nodes, self.output_nodes))
 
+    def think(self, inputs):
+        """
+        :param inputs: TODO
+        :return: TODO
+
+                Activation function used: Step function (perceptron returns 1 if positve, 0 if negative)
+        """
+        assert len(inputs) == self.input_nodes
+
+        perceptrons = np.transpose([inputs])
+
+        # Input layer -> hidden1
+        perceptrons = np.sum(self.input_hidden1_mat * perceptrons, axis=0)
+        perceptrons = np.heaviside(perceptrons, 1)
+        perceptrons = np.transpose([perceptrons])
+
+        # Hidden1 -> hidden2
+        perceptrons = np.sum(self.hidden1_hidden2_mat * perceptrons, axis=0)
+        perceptrons = np.heaviside(perceptrons, 1)
+        perceptrons = np.transpose([perceptrons])
+
+        # Hidden2 -> output layer
+        perceptrons = np.sum(self.hidden2_output_mat * perceptrons, axis=0)
+
+        return np.argmax(perceptrons)

@@ -8,20 +8,25 @@ def ceil_to_multiple(x, mul):
     return (int(x / mul) + 1) * mul
 
 
+def get_random_coord(max_coord):
+    coord = random.randint(Food.margin, max_coord - Food.margin)
+    return ceil_to_multiple(coord, Snake.body_size)
+
+
 class Food:
     margin = 30
 
     def __init__(self):
-        self.x     = ceil_to_multiple(random.randint(Food.margin, Screen.width - Food.margin), Snake.body_size)
-        self.y     = ceil_to_multiple(random.randint(Food.margin, Screen.height - Food.margin), Snake.body_size)
-        self.color = (255, 0, 0);
+        self._x     = get_random_coord(Screen.width)
+        self._y     = get_random_coord(Screen.height)
+        self._color = (255, 0, 0);
 
     def change_pos(self):
-        self.x = ceil_to_multiple(random.randint(Food.margin, Screen.width - Food.margin), Snake.body_size)
-        self.y = ceil_to_multiple(random.randint(Food.margin, Screen.height - Food.margin), Snake.body_size)
+        self._x = get_random_coord(Screen.width)
+        self._y = get_random_coord(Screen.height)
 
     def draw(self, frame):
-        pygame.draw.circle(frame, self.color, self.dims(), 5, 0)
+        pygame.draw.circle(frame, self._color, self.dims(), 5, 0)
 
     def dims(self):
-        return self.x, self.y
+        return self._x, self._y

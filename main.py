@@ -5,44 +5,44 @@ from screen import Screen
 
 # Create the screen
 screen = Screen()
-frame  = screen.get_frame()
-font   = screen.get_font()
-
-# Set up fps
-fps = 60
-now = time.time()
-
-# Set up game variables
-running = True
-score   = 0
 
 # Create the population
 population = Population()
 
+# Set up game variables
+fps     = 60
+now     = time.time()
+running = True
+
 # Game loop
 while running:
     # Refresh screen
-    frame.fill((255, 255, 255))
-
-    # Print score
-    score_surfice = font.render(str(score), False, (0, 200, 0))
-    frame.blit(score_surfice, (Screen.width - 80, 20))
+    screen.frame.fill((255, 255, 255))
 
     # Draw walls
-    pygame.draw.line(frame, (0, 0, 0), (5, 0), (5, Screen.height), 10)
-    pygame.draw.line(frame, (0, 0, 0), (0, 5), (Screen.width, 5), 10)
-    pygame.draw.line(frame, (0, 0, 0), (Screen.width - 5, Screen.height), (Screen.width - 5, 0), 10)
-    pygame.draw.line(frame, (0, 0, 0), (Screen.width, Screen.height - 5), (0, Screen.height - 5), 10)
+    pygame.draw.line(screen.frame, (0, 0, 0), (5, 0), (5, Screen.height), 10)
+    pygame.draw.line(screen.frame, (0, 0, 0), (0, 5), (Screen.width, 5), 10)
+    pygame.draw.line(screen.frame, (0, 0, 0), (Screen.width - 5, Screen.height), (Screen.width - 5, 0), 10)
+    pygame.draw.line(screen.frame, (0, 0, 0), (Screen.width, Screen.height - 5), (0, Screen.height - 5), 10)
 
     # Draw the population
-    population.draw(frame)
+    population.draw(screen.frame)
+
+    # Print generation and current max score
+    generation_surfice = screen.font.render("Generation " + str(population.generation), False, (0, 150, 0))
+    max_score_surfice  = screen.font.render("Max score  " + str(population.max_score), False, (0, 150, 0))
+    screen.frame.blit(generation_surfice, (Screen.width - 200, 20))
+    screen.frame.blit(max_score_surfice, (Screen.width - 200, 50))
 
     # Move the snakes
-    if not population.are_all_dead():
-        population.move()
+    population.move()
+    if population.are_all_dead:
+        population.reproduce()
 
+    # Update display
     pygame.display.flip()
 
+    # Quit on close button
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False

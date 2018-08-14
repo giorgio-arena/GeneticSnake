@@ -8,13 +8,15 @@ class Screen:
     def __init__(self):
         pygame.font.init()
 
-        self.frame = pygame.display.set_mode((Screen.width, Screen.height), pygame.DOUBLEBUF | pygame.HWSURFACE)
-        self.font  = pygame.font.SysFont('Comic Sans MS', 30)
+        self._frame = pygame.display.set_mode((Screen.width, Screen.height), pygame.DOUBLEBUF | pygame.HWSURFACE)
+        self._font  = pygame.font.SysFont('Times New Roman', 30)
 
         pygame.display.set_caption('snAIk')
 
-    def get_frame(self):
-        return self.frame
+    @property
+    def frame(self):
+        return self._frame
 
-    def get_font(self):
-        return self.font
+    @property
+    def font(self):
+        return self._font

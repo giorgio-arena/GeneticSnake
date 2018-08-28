@@ -1,4 +1,4 @@
-import pygame
+import pygame as pg
 import random
 from screen import Screen
 from snake import Snake
@@ -10,7 +10,7 @@ def ceil_to_multiple(x, mul):
 
 def get_random_coord(max_coord):
     coord = random.randint(Food.margin, max_coord - Food.margin)
-    return ceil_to_multiple(coord, Snake.body_size)
+    return ceil_to_multiple(coord, Snake.body_sz)
 
 
 class Food:
@@ -26,7 +26,7 @@ class Food:
         self._y = get_random_coord(Screen.height)
 
     def draw(self, frame):
-        pygame.draw.circle(frame, self._color, self.dims(), 5, 0)
+        pg.draw.circle(frame, self._color, self.pos(), 5, 0)
 
-    def dims(self):
+    def pos(self):
         return self._x, self._y

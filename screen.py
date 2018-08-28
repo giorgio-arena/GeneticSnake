@@ -1,4 +1,4 @@
-import pygame
+import pygame as pg
 
 
 class Screen:
@@ -6,12 +6,12 @@ class Screen:
     height = 480
 
     def __init__(self):
-        pygame.font.init()
+        pg.font.init()
 
-        self._frame = pygame.display.set_mode((Screen.width, Screen.height), pygame.DOUBLEBUF | pygame.HWSURFACE)
-        self._font  = pygame.font.SysFont('Times New Roman', 30)
+        self._frame = pg.display.set_mode((Screen.width, Screen.height), pg.DOUBLEBUF | pg.HWSURFACE)
+        self._font  = pg.font.SysFont('Times New Roman', 30)
 
-        pygame.display.set_caption('snAIk')
+        pg.display.set_caption('snAIk')
 
     @property
     def frame(self):

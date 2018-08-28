@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import copy
 
 
 def sigmoid(x):
@@ -24,15 +25,15 @@ def mutate(arr):
     for index in np.ndindex(arr.shape):
         probab = random.randint(0, 100)
         if probab < (Brain.mutation_rate * 100):
-            arr[index] = random.uniform(-1.0, 1.0)
+            arr[index] = random.uniform(-1.0, 1.0)  #+= random.uniform(-Brain.mutation_quant, Brain.mutation_quant)
 
 
 class Brain:
-    input_nodes   = 24
-    hidden1_nodes = 16
-    hidden2_nodes = 8
-    output_nodes  = 4
-    mutation_rate = 0.01
+    input_nodes    = 24
+    hidden1_nodes  = 16
+    output_nodes   = 4
+    mutation_rate  = 0.01
+    mutation_quant = 0.1
 
     def __init__(self, brain_1=None, brain_2 = None):
         """
@@ -46,27 +47,21 @@ class Brain:
         if brain_1 is None and brain_2 is None:
             # Initialize weights and biases randomly
             self.input_hidden1   = np.random.uniform(low=-1.0, high=1.0, size=(Brain.input_nodes, Brain.hidden1_nodes))
-            self.hidden1_hidden2 = np.random.uniform(low=-1.0, high=1.0, size=(Brain.hidden1_nodes, Brain.hidden2_nodes))
-            self.hidden2_output  = np.random.uniform(low=-1.0, high=1.0, size=(Brain.hidden2_nodes, Brain.output_nodes))
+            self.hidden1_output  = np.random.uniform(low=-1.0, high=1.0, size=(Brain.hidden1_nodes, Brain.output_nodes))
             self.bias_1          = np.random.uniform(low=-1.0, high=1.0, size=Brain.hidden1_nodes)
-            self.bias_2          = np.random.uniform(low=-1.0, high=1.0, size=Brain.hidden2_nodes)
-            self.bias_3          = np.random.uniform(low=-1.0, high=1.0, size=Brain.output_nodes)
+            self.bias_2          = np.random.uniform(low=-1.0, high=1.0, size=Brain.output_nodes)
         elif brain_2 is None:
             # Copy constructor
-            self.input_hidden1   = brain_1.input_hidden1
-            self.hidden1_hidden2 = brain_1.hidden1_hidden2
-            self.hidden2_output  = brain_1.hidden2_output
-            self.bias_1          = brain_1.bias_1
-            self.bias_2          = brain_1.bias_2
-            self.bias_3          = brain_1.bias_3
+            self.input_hidden1   = copy.deepcopy(brain_1.input_hidden1)
+            self.hidden1_output  = copy.deepcopy(brain_1.hidden1_output)
+            self.bias_1          = copy.deepcopy(brain_1.bias_1)
+            self.bias_2          = copy.deepcopy(brain_1.bias_2)
         else:
             # Crossover
             self.input_hidden1   = crossover(brain_1.input_hidden1, brain_2.input_hidden1)
-            self.hidden1_hidden2 = crossover(brain_1.hidden1_hidden2, brain_2.hidden1_hidden2)
-            self.hidden2_output  = crossover(brain_1.hidden2_output, brain_2.hidden2_output)
+            self.hidden1_output  = crossover(brain_1.hidden1_output, brain_2.hidden1_output)
             self.bias_1          = crossover(brain_1.bias_1, brain_2.bias_1)
             self.bias_2          = crossover(brain_1.bias_2, brain_2.bias_2)
-            self.bias_3          = crossover(brain_1.bias_3, brain_2.bias_3)
 
     def think(self, inputs):
         """
@@ -80,20 +75,16 @@ class Brain:
         perceptrons = np.transpose([inputs])  # Make inputs into a column so they can be multiplied to the first weights
 
         # Input layer -> hidden1
-        perceptrons  = np.sum(self.input_hidden1 * perceptrons, axis=0)  # Apply inputs to the first set of weights
+        perceptrons  = np.multiply(self.input_hidden1, perceptrons);     # Apply inputs to input layer
+        perceptrons  = np.sum(perceptrons, axis=0)                       # Apply first set of weights
         perceptrons += self.bias_1                                       # Apply bias
         perceptrons  = sigmoid(perceptrons)                              # Perform activation function
         perceptrons  = np.transpose([perceptrons])                       # Make them ready to be multiplied again
 
-        # Hidden1 -> hidden2
-        perceptrons  = np.sum(self.hidden1_hidden2 * perceptrons, axis=0)
+        # Hidden1 -> output layer
+        perceptrons  = np.multiply(self.hidden1_output, perceptrons);
+        perceptrons  = np.sum(perceptrons, axis=0)
         perceptrons += self.bias_2
-        perceptrons  = sigmoid(perceptrons)
-        perceptrons  = np.transpose([perceptrons])
-
-        # Hidden2 -> output layer
-        perceptrons  = np.sum(self.hidden2_output * perceptrons, axis=0)
-        perceptrons += self.bias_3
         perceptrons  = sigmoid(perceptrons)
 
         return np.argmax(perceptrons)
@@ -102,8 +93,5 @@ class Brain:
         mutate(self.input_hidden1)
         mutate(self.bias_1)
 
-        mutate(self.hidden1_hidden2)
+        mutate(self.hidden1_output)
         mutate(self.bias_2)
-
-        mutate(self.hidden2_output)
-        mutate(self.bias_3)
